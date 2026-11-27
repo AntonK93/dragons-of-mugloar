@@ -10,6 +10,10 @@ lerna-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Runtime data
+backend/data/game-statistics.json
+backend/data/game-statistics.json.tmp
+game-statistics.json
+game-statistics.json.tmp
 pids
 *.pid
 *.seed
