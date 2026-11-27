@@ -1,0 +1,182 @@
+.topbar {
+  min-height: 60px;
+  padding: 0 max(5%, calc((100% - 1500px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #211e1a;
+  color: #eee9dc;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.brandMark {
+  display: grid;
+  place-items: center;
+  color: #d3b16f;
+  border: 1px solid #8e7547;
+  width: 41px;
+  height: 45px;
+}
+.brandName,
+.brandSubtitle {
+  display: block;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+.brandName {
+  font-family: "Playfair Display", serif;
+  font-size: 15px;
+}
+.brandSubtitle {
+  font-size: 8px;
+  color: #c9ab73;
+  margin-top: 2px;
+}
+.previewBadge {
+  border: 1px solid #514a3c;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #d5c9ad;
+  white-space: nowrap;
+}
+.statusDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #cfa75f;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.page {
+  max-width: 1500px;
+  margin: auto;
+  padding: 24px 24px 0;
+}
+.adventureIntro {
+  padding: 48px 0 16px;
+  text-align: center;
+}
+.adventureFeatures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 26px;
+}
+.adventureFeature {
+  padding: 26px 20px;
+  border: 1px solid #e8e2d7;
+  background: #fffdfa;
+  color: #a98750;
+}
+.adventureFeature h3 {
+  margin: 14px 0 8px;
+  color: #554a3d;
+  font-size: 19px;
+  font-weight: 500;
+}
+.adventureFeature p {
+  margin: 0;
+  color: #786e60;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.sectionHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.overviewHeading {
+  margin: 0 0 20px;
+}
+.gameId {
+  font-size: 9px;
+  color: #aaa08f;
+  letter-spacing: 0.1em;
+}
+.gameId strong {
+  margin-left: 8px;
+  font-size: 11px;
+  color: #8d8171;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.gameLayout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+.gameContent {
+  min-width: 0;
+}
+.contentGrid {
+  margin-top: 22px;
+}
+.sidePanels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 30px 0;
+  color: #aaa091;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+@media (max-width: 900px) {
+  .gameLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .topbar {
+    gap: 24px;
+    padding: 7px 24px;
+    flex-wrap: wrap;
+  }
+  .previewBadge {
+    display: none;
+  }
+  .sidePanels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .topbar {
+    justify-content: center;
+  }
+  .page {
+    padding: 18px 16px 0;
+  }
+  .adventureFeatures {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .overviewHeading {
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sidePanels {
+    grid-template-columns: 1fr;
+  }
+  .footer span:last-child {
+    display: none;
+  }
+}

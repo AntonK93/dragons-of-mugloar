@@ -1,0 +1,33 @@
+.itemList {
+  margin: 0 0 14px;
+  max-height: 128px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 6px 0 0;
+  list-style: none;
+}
+.itemList:not(:empty) {
+  margin-top: 18px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1ede5;
+}
+.itemDetails {
+  display: grid;
+  gap: 4px;
+  color: #554a3d;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.itemDetails span {
+  color: #928779;
+}
+.refreshButton {
+  width: 100%;
+  margin-top: auto;
+}

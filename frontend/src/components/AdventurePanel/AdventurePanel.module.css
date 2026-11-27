@@ -1,0 +1,21 @@
+.heroBottom {
+  position: absolute;
+  bottom: 19px;
+  left: 64px;
+  right: 64px;
+  display: flex;
+  justify-content: space-between;
+  color: #b99f7b;
+  opacity: 0.65;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+}
+@media (max-width: 600px) {
+  .heroBottom {
+    left: 28px;
+    right: 28px;
+  }
+  .heroBottom span:last-child {
+    display: none;
+  }
+}

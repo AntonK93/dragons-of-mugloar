@@ -1,0 +1,154 @@
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #c8a667;
+  margin: 0 0 15px;
+}
+.darkEyebrow {
+  color: #a68858;
+  margin-bottom: 8px;
+  font-size: 9px;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 19px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.buttonPrimary {
+  background: #d0ad6b;
+  color: #2e241a;
+  cursor: pointer;
+}
+.buttonPrimary:hover {
+  background: #e0bf7d;
+}
+.buttonOutline {
+  border-color: #e3d8c6;
+  background: transparent;
+  color: #a08d71;
+  padding: 10px 15px;
+}
+.buttonOutline:not(:disabled) {
+  cursor: pointer;
+}
+.panel {
+  background: #fffdfa;
+  border: 1px solid #e8e2d7;
+}
+.panel h2 {
+  font-size: 21px;
+}
+.headingWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.headingIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  color: #a98750;
+  background: #f7f2e8;
+}
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 22px;
+}
+.gameScreen {
+  animation: screenEnter 480ms ease-out both;
+}
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  background:
+    radial-gradient(ellipse at center, #63412e 0%, transparent 65%),
+    linear-gradient(110deg, #281d1b 3%, #3b2921 58%, #2c2620 100%);
+  color: #f5efdf;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid #d5b67730;
+  pointer-events: none;
+}
+.heroContent {
+  position: relative;
+  z-index: 1;
+  padding: 60px 32px 72px;
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+.heroOrnament {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  color: #d3b474;
+  opacity: 0.07;
+}
+.heroDescription {
+  max-width: 460px;
+  color: #d0c2b1;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0 auto 28px;
+}
+.gameOverStats {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 28px;
+}
+.gameOverStats div {
+  min-width: 120px;
+  padding: 12px 20px;
+  border: 1px solid #d5b67740;
+  background: #211a1770;
+}
+.gameOverStats dt {
+  color: #b99f7b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.gameOverStats dd {
+  margin: 6px 0 0;
+  color: #f5efdf;
+  font-size: 22px;
+  font-weight: 700;
+}
+@media (max-width: 600px) {
+  .heroContent {
+    padding: 50px 28px 75px;
+  }
+  .heroOrnament {
+    opacity: 0.08;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gameScreen {
+    animation: none;
+  }
+}

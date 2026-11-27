@@ -1,0 +1,32 @@
+.heroActions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.heroStart {
+  min-width: 220px;
+  min-height: 54px;
+  padding: 15px 28px;
+  font-size: 15px;
+  box-shadow: 0 6px 24px #100a0866;
+}
+.heroStart:focus-visible {
+  outline: 2px solid #fff4d8;
+  outline-offset: 4px;
+}
+.heroAutoPlay {
+  border-color: #b8935c;
+  background: #65432f;
+  color: #fff1d2;
+}
+.heroAutoPlay:not(:disabled) {
+  cursor: pointer;
+}
+.heroAutoPlay:not(:disabled):hover {
+  background: #805638;
+  border-color: #d7b87d;
+}
+.heroAutoPlay:disabled {
+  opacity: 0.6;
+}

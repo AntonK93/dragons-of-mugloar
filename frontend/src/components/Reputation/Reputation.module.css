@@ -1,0 +1,18 @@
+.reputationList {
+  margin: 18px 0 13px;
+}
+.reputationList div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: #928779;
+  font-size: 12px;
+  border-bottom: 1px solid #f1ede5;
+}
+.reputationList strong {
+  color: #b6aa98;
+}
+.fullWidth {
+  width: 100%;
+  margin-top: auto;
+}
