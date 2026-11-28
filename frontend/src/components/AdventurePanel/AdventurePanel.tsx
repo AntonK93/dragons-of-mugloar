@@ -52,7 +52,7 @@ function AdventurePanel() {
                             </div>
                         </dl>
                     )}
-                    <GameStartActions isGameOver={isGameOver} />
+                    <GameStartActions />
                 </div>
                 {!isGameOver && (
                     <div className={styles.heroBottom} aria-hidden="true">

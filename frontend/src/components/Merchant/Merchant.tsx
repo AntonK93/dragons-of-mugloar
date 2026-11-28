@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Icon from "../Icon/Icon";
+import { errorCodes } from "../../errorCodes";
 import { buyItem, getShopItems } from "../../store/gameSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import shared from "../../shared.module.css";
@@ -22,7 +23,7 @@ function Merchant() {
     async function handleRefresh() {
         setIsLoading(true);
         const result = await dispatch(getShopItems());
-        if (getShopItems.rejected.match(result)) {
+        if (getShopItems.rejected.match(result) && result.error.code !== errorCodes.GAME_OVER) {
             toast.error("Could not fetch shop items");
         }
         setIsLoading(false);

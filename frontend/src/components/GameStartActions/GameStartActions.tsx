@@ -6,15 +6,13 @@ import { useAppDispatch } from "../../store/hooks";
 import shared from "../../shared.module.css";
 import styles from "./GameStartActions.module.css";
 
-function GameStartActions({ isGameOver }: { isGameOver: boolean }) {
+function GameStartActions() {
     const dispatch = useAppDispatch();
     const [loadingAction, setLoadingAction] = useState<"game" | "autoPlay" | null>(null);
 
     async function handleStart() {
         setLoadingAction("game");
-        if (isGameOver) {
-            dispatch(resetGame());
-        }
+        dispatch(resetGame());
         const result = await dispatch(startGame());
         if (startGame.rejected.match(result)) {
             toast.error("Could not start the game");

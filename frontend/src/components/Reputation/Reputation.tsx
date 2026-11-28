@@ -5,6 +5,7 @@ import { investigateReputation } from "../../store/gameSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import shared from "../../shared.module.css";
 import styles from "./Reputation.module.css";
+import { errorCodes } from "../../errorCodes";
 
 function Reputation() {
     const dispatch = useAppDispatch();
@@ -16,7 +17,10 @@ function Reputation() {
     async function handleInvestigate() {
         setIsLoading(true);
         const result = await dispatch(investigateReputation());
-        if (investigateReputation.rejected.match(result)) {
+        if (
+            investigateReputation.rejected.match(result) &&
+            result.error.code !== errorCodes.GAME_OVER
+        ) {
             toast.error("Could not fetch player reputation");
         }
         setIsLoading(false);

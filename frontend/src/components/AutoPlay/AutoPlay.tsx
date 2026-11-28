@@ -71,7 +71,7 @@ function AutoPlay() {
                         </dl>
                     )}
                     {isGameOver ? (
-                        <GameStartActions isGameOver />
+                        <GameStartActions />
                     ) : (
                         <span
                             className={styles.autoPlayStatus}

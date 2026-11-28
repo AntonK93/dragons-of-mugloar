@@ -5,6 +5,7 @@ import { getMessages, solveMessage } from "../../store/gameSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import shared from "../../shared.module.css";
 import styles from "./Messages.module.css";
+import { errorCodes } from "../../errorCodes";
 
 function Messages() {
     const dispatch = useAppDispatch();
@@ -23,7 +24,7 @@ function Messages() {
     async function handleRefresh() {
         setIsLoading(true);
         const result = await dispatch(getMessages());
-        if (getMessages.rejected.match(result)) {
+        if (getMessages.rejected.match(result) && result.error.code !== errorCodes.GAME_OVER) {
             toast.error("Could not fetch messages");
         }
         setIsLoading(false);
@@ -33,7 +34,13 @@ function Messages() {
         setIsLoading(true);
         const result = await dispatch(solveMessage(adId));
         if (solveMessage.fulfilled.match(result)) {
-            await handleRefresh();
+            if (result.payload.success) {
+                toast.success(result.payload.message);
+            } else {
+                toast.error(result.payload.message);
+            }
+        } else if (result.error.code !== errorCodes.GAME_OVER) {
+            toast.error(result.error.message ?? "Could not solve message");
         }
         setIsLoading(false);
     }

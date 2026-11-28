@@ -156,7 +156,7 @@ export const startAutoPlay = createAsyncThunk<void, void, { state: RootState }>(
     },
 );
 
-export const solveMessage = createAsyncThunk<void, string, { state: RootState }>(
+export const solveMessage = createAsyncThunk<SolveMessageResponse, string, { state: RootState }>(
     "game/solveMessage",
     async (adId, { dispatch, getState }) => {
         const gameData = getState().game.gameData;
@@ -178,11 +178,7 @@ export const solveMessage = createAsyncThunk<void, string, { state: RootState }>
                 turn: data.turn,
             }),
         );
-        if (data.success) {
-            toast.success(`${data.message}`);
-        } else {
-            toast.error(`${data.message}`);
-        }
+        return data;
     },
 );
 
