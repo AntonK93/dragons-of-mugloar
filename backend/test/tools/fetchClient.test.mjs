@@ -78,11 +78,13 @@ test("FetchClientBuilder uses the configured error type and truncates logs", asy
         .setErrorConstructor(GameApiError)
         .createClient();
 
-    await assert.rejects(client.get("game?token=secret"), {
-        name: "GameApiError",
-        apiStatus: 410,
-        statusCode: 410,
-        message: "x".repeat(1000),
+    await assert.rejects(client.get("game?token=secret"), (error) => {
+        assert.ok(error instanceof GameApiError);
+        assert.equal(error.apiStatus, 410);
+        assert.equal(error.statusCode, 410);
+        assert.equal(error.message, "Game Api Error");
+        assert.equal(error.code, "GAME_OVER");
+        return true;
     });
     const [message] = logError.mock.calls[0].arguments;
     assert.ok(message.includes("HTTP GET https://example.test/api/game failed with status 410"));

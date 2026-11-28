@@ -1,3 +1,12 @@
+class ApiError extends Error {
+    readonly code?: string;
+
+    constructor(status: number, code?: string) {
+        super(`HTTP request failed with status ${status}`);
+        this.code = code;
+    }
+}
+
 export class FetchClientBuilder {
     private base?: URL;
     private timeout = 5_000;
@@ -23,7 +32,22 @@ export class FetchClientBuilder {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP request failed with status ${response.status}`);
+                let body: unknown;
+                try {
+                    body = await response.json();
+                } catch (error) {
+                    if (!(error instanceof SyntaxError)) {
+                        throw error;
+                    }
+                }
+                const code =
+                    typeof body === "object" &&
+                    body !== null &&
+                    "code" in body &&
+                    typeof body.code === "string"
+                        ? body.code
+                        : undefined;
+                throw new ApiError(response.status, code);
             }
 
             return response;

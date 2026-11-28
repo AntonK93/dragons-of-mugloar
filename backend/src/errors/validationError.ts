@@ -1,5 +1,5 @@
 import type { FastifyError } from "fastify";
-import { AppError } from "./errors";
+import { AppError, appCodes } from "./errors";
 import type { ErrorDetail } from "../types/response";
 
 type FastifyValidationErrors = NonNullable<FastifyError["validation"]>;
@@ -27,7 +27,7 @@ export class ValidationError extends AppError {
             message: error.message ?? "Invalid value",
         }));
 
-        super("Request validation failed", 400, details);
+        super("Request validation failed", 400, appCodes.VALIDATION_ERROR, details);
         this.name = "ValidationError";
     }
 }

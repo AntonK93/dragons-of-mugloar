@@ -1,15 +1,20 @@
-import { AppError } from "./errors";
+import { ErrorDetail } from "../types/response";
+import { AppError, appCodes } from "./errors";
 
 export const GAME_OVER_STATUS = 410;
-const validEndUserErrors = [GAME_OVER_STATUS];
+const gameApiCodeMapping = new Map<number, string>([[GAME_OVER_STATUS, appCodes.GAME_OVER]]);
 
 export class GameApiError extends AppError {
     constructor(
-        message: string,
+        _message: string,
         readonly apiStatus: number,
+        readonly details?: ErrorDetail[],
     ) {
-        const isValid = validEndUserErrors.includes(apiStatus);
-        super(isValid ? message : "Internal server error", isValid ? apiStatus : 500);
-        this.name = "GameApiError";
+        const validCode = gameApiCodeMapping.get(apiStatus);
+        super(
+            validCode ? "Game Api Error" : "Internal server error",
+            validCode ? apiStatus : 500,
+            validCode ? validCode : undefined,
+        );
     }
 }

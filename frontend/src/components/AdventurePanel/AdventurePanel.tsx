@@ -6,7 +6,7 @@ import styles from "./AdventurePanel.module.css";
 
 function AdventurePanel() {
     const gameData = useAppSelector((state) => state.game.gameData);
-    const isGameOver = Boolean(gameData?.gameId && gameData.lives === 0);
+    const isGameOver = useAppSelector((state) => state.game.gameOver);
 
     return (
         <>
@@ -43,11 +43,11 @@ function AdventurePanel() {
                     {isGameOver && gameData && (
                         <dl className={shared.gameOverStats}>
                             <div>
-                                <dt>FINAL SCORE</dt>
+                                <dt>{isGameOver ? "LAST KNOWN SCORE" : "FINAL SCORE"}</dt>
                                 <dd>{gameData.score}</dd>
                             </div>
                             <div>
-                                <dt>TURNS</dt>
+                                <dt>{isGameOver ? "LAST KNOWN TURN" : "TURNS"}</dt>
                                 <dd>{gameData.turn}</dd>
                             </div>
                         </dl>

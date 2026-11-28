@@ -30,6 +30,7 @@ export const errorHandler = (
     ) {
         const apiError: ApiErrorResponse = { message: error.message };
         if (isAppError) {
+            apiError.code = error.code;
             apiError.details = error.details;
         }
         reply.code(statusCode).send(apiError);

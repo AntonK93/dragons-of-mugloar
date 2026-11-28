@@ -14,7 +14,7 @@ This application solves two challenges from [Dragons of Mugloar](https://dragons
 - Implement state management.
 - Develop a program that reaches 1,000+ points in the game.
 - Ensure proper error handling and input validation.
-- Write unit tests to verify the code, including backend business logic (47 backend tests added).
+- Write unit tests to verify the code, including backend business logic (48 backend tests added).
 
 ## Features
 

@@ -16,7 +16,7 @@ function App() {
     const autoPlay = useAppSelector((state) => state.game.autoPlay);
     const gameId = gameData?.gameId;
     const showGame = Boolean(gameId);
-    const isGameOver = Boolean(gameId && gameData?.lives === 0);
+    const isGameOver = useAppSelector((state) => state.game.gameOver);
 
     function getStatus() {
         if (autoPlay) {

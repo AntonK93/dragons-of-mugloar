@@ -15,6 +15,7 @@ test("ValidationError formats validation messages and paths", () => {
     assert.equal(error.name, "ValidationError");
     assert.equal(error.statusCode, 400);
     assert.equal(error.message, "Request validation failed");
+    assert.equal(error.code, "VALIDATION_ERROR");
     assert.deepEqual(error.details, [
         { path: "user.name", message: "must be a string" },
         { path: "profile.age", message: "is required" },

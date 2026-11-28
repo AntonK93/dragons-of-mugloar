@@ -1,9 +1,10 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, isRejected } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { config } from "../config";
 import { FetchClientBuilder } from "../tools/fetchClient";
 import type { RootState } from "./store";
 import { toast } from "react-toastify";
+import { errorCodes } from "../errorCodes";
 
 interface GameData {
     gameId: string;
@@ -70,6 +71,7 @@ interface AutoPlayActionLog {
 interface GameState {
     gameData: GameData | null;
     autoPlay: boolean;
+    gameOver: boolean;
     reputationData: ReputationData | null;
     messages: GameMessage[] | null;
     items: ShopItem[] | null;
@@ -80,6 +82,7 @@ interface GameState {
 const initialState: GameState = {
     gameData: null,
     autoPlay: false,
+    gameOver: false,
     reputationData: null,
     items: null,
     messages: null,
@@ -237,6 +240,9 @@ const gameSlice = createSlice({
         setAutoPlay: (state, action: PayloadAction<boolean>) => {
             state.autoPlay = action.payload;
         },
+        setGameOver: (state) => {
+            state.gameOver = true;
+        },
         setGameData: (state, action: PayloadAction<GameData>) => {
             state.gameData = action.payload;
         },
@@ -256,11 +262,27 @@ const gameSlice = createSlice({
             state.autoPlayActionLog = action.payload;
         },
     },
+    extraReducers: (builder) => {
+        const manualActions = [
+            investigateReputation,
+            getMessages,
+            solveMessage,
+            getShopItems,
+            buyItem,
+        ] as const;
+
+        builder.addMatcher(isRejected(...manualActions), (state, action) => {
+            if (action.error.code === errorCodes.GAME_OVER) {
+                gameSlice.caseReducers.setGameOver(state);
+            }
+        });
+    },
 });
 
 export const {
     resetGame,
     setAutoPlay,
+    setGameOver,
     setGameData,
     setReputationData,
     setMessages,

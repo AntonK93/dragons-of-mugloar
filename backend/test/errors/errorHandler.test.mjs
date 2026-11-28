@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { errorCodes } from "fastify";
 import { errorHandler } from "../../dist/errors/errorHandler.js";
 import { AppError, InternalServerError } from "../../dist/errors/errors.js";
+import { GameApiError } from "../../dist/errors/gameApiError.js";
 import { logger } from "../../dist/tools/logger.js";
 
 /** @param {import("node:test").TestContext} t */
@@ -14,15 +15,30 @@ const createContext = (t) => {
     return { request, reply, logError };
 };
 
-test("errorHandler returns application client errors with their details", (t) => {
+test("errorHandler returns application client errors with their code and details", (t) => {
     const { request, reply, logError } = createContext(t);
     const details = [{ path: "gameId", message: "Invalid game ID" }];
-    const error = new AppError("Invalid request", 400, details);
+    const error = new AppError("Invalid request", 400, "VALIDATION_ERROR", details);
 
     errorHandler(error, request, reply);
 
     assert.deepEqual(reply.code.mock.calls[0].arguments, [400]);
-    assert.deepEqual(reply.send.mock.calls[0].arguments, [{ message: "Invalid request", details }]);
+    assert.deepEqual(reply.send.mock.calls[0].arguments, [
+        { message: "Invalid request", code: "VALIDATION_ERROR", details },
+    ]);
+    assert.equal(logError.mock.callCount(), 0);
+});
+
+test("errorHandler returns the GAME_OVER code for a game API 410", (t) => {
+    const { request, reply, logError } = createContext(t);
+    const error = new GameApiError('{"status":"Game Over"}', 410);
+
+    errorHandler(error, request, reply);
+
+    assert.deepEqual(reply.code.mock.calls[0].arguments, [410]);
+    assert.deepEqual(reply.send.mock.calls[0].arguments, [
+        { message: "Game Api Error", code: "GAME_OVER", details: undefined },
+    ]);
     assert.equal(logError.mock.callCount(), 0);
 });
 

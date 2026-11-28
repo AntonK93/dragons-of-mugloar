@@ -5,5 +5,6 @@ export interface ErrorDetail {
 
 export interface ApiErrorResponse {
     message: string;
+    code?: string;
     details?: ErrorDetail[];
 }
