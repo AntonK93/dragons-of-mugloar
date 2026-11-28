@@ -1,13 +1,37 @@
-import type { AutoPlayGames } from "../cache/autoPlayGames";
-import { autoPlayConfig } from "../config";
-import type { GameApi } from "./gameApi";
-import { AutoPlayActionLog } from "../types/autoplay";
-import { InternalServerError } from "../errors/errors";
-import { GetMessagesResponse, InvestigateReputationResponse } from "../types/game";
+import type { AutoPlayGamesStore } from "../cache/autoPlayGames.js";
+import { autoPlayConfig } from "../config.js";
+import type { GameApi } from "./gameApi.js";
+import { AutoPlayActionLog } from "../types/autoplay.js";
+import { InternalServerError } from "../errors/errors.js";
+import {
+    GetMessagesResponse,
+    InvestigateReputationResponse,
+    StartGameResponse,
+} from "../types/game.js";
+
+export const startAutoPlayGame = async (
+    gameApi: GameApi,
+    autoPlayGamesStore: AutoPlayGamesStore,
+): Promise<StartGameResponse> => {
+    const gameData = await gameApi.startGame();
+    autoPlayGamesStore.add(gameData.gameId, {
+        type: "initial",
+        result: "Game started",
+        turn: gameData.turn,
+        gold: gameData.gold,
+        stateReputation: 0,
+        peopleReputation: 0,
+        underworldReputation: 0,
+        score: gameData.score,
+        lives: gameData.lives,
+        timestamp: Date.now(),
+    });
+    return gameData;
+};
 
 export class AutoPlayService {
     private readonly gameApi: GameApi;
-    private readonly autoPlayGames: AutoPlayGames;
+    private readonly autoPlayGamesStore: AutoPlayGamesStore;
     private readonly questComplexityOrder = new Map<string, number>([
         ["Piece of cake", 1],
         ["Sure thing", 2],
@@ -23,17 +47,14 @@ export class AutoPlayService {
     ]);
     private readonly stateReputationQuestKeyword = ["Steal", "Infiltrate"];
 
-    constructor(gameApi: GameApi, autoPlayGames: AutoPlayGames) {
+    constructor(gameApi: GameApi, autoPlayGamesStore: AutoPlayGamesStore) {
         this.gameApi = gameApi;
-        this.autoPlayGames = autoPlayGames;
+        this.autoPlayGamesStore = autoPlayGamesStore;
     }
 
     async playTurn(gameId: string, gameLog: AutoPlayActionLog[]): Promise<void> {
         const lastLog = gameLog[gameLog.length - 1];
-        if (lastLog.type === "gameOver") {
-            return;
-        }
-        if (await this.buyItemIfRequires(gameId, lastLog)) {
+        if (await this.buyItemIfPossible(gameId, lastLog)) {
             return;
         }
         await this.solveQuest(gameId, lastLog);
@@ -77,7 +98,7 @@ export class AutoPlayService {
         };
         if (this.isQuestReputationRisky(questToSolve.message)) {
             reputation = await this.gameApi.investigateReputation(gameId);
-            this.autoPlayGames.addActionLog(gameId, {
+            this.autoPlayGamesStore.addActionLog(gameId, {
                 type: "reputation",
                 result: "Investigated reputation",
                 turn: lastAction.turn + 1,
@@ -87,7 +108,7 @@ export class AutoPlayService {
                 underworldReputation: reputation.underworld,
                 score: lastAction.score,
                 lives: lastAction.lives,
-                timestamp: new Date().toISOString(),
+                timestamp: Date.now(),
             });
             const quests = await this.getQuests(gameId);
             const reshuffledQuests = this.sortQuests(quests, reputation.state);
@@ -95,7 +116,7 @@ export class AutoPlayService {
         }
 
         const solveResult = await this.gameApi.solveMessage(gameId, questToSolve.adId);
-        this.autoPlayGames.addActionLog(gameId, {
+        this.autoPlayGamesStore.addActionLog(gameId, {
             type: "quest",
             result: [
                 `Quest result: ${solveResult.message}`,
@@ -109,11 +130,11 @@ export class AutoPlayService {
             underworldReputation: reputation.underworld,
             score: solveResult.score,
             lives: solveResult.lives,
-            timestamp: new Date().toISOString(),
+            timestamp: Date.now(),
         });
     }
 
-    private async buyItemIfRequires(
+    private async buyItemIfPossible(
         gameId: string,
         lastAction: AutoPlayActionLog,
     ): Promise<boolean> {
@@ -145,7 +166,7 @@ export class AutoPlayService {
         if (!result.shoppingSuccess) {
             throw new InternalServerError(`Failed to buy item ${itemId} for game ${gameId}`);
         }
-        this.autoPlayGames.addActionLog(gameId, {
+        this.autoPlayGamesStore.addActionLog(gameId, {
             type: "purchase",
             result: "You bought item: " + itemId,
             turn: result.turn,
@@ -155,8 +176,15 @@ export class AutoPlayService {
             underworldReputation: lastAction.underworldReputation,
             score: lastAction.score,
             lives: result.lives,
-            timestamp: new Date().toISOString(),
+            timestamp: Date.now(),
         });
         return true;
     }
 }
+
+export const createAutoPlayService = (
+    gameApi: GameApi,
+    autoPlayGamesStore: AutoPlayGamesStore,
+): AutoPlayService => {
+    return new AutoPlayService(gameApi, autoPlayGamesStore);
+};

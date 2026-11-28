@@ -8,8 +8,8 @@ import {
     buyItem,
     startAutoPlay,
     getAutoPlayStatus,
-} from "./handlers";
-import { buyItemSchema, gameSchema, solveMessageSchema } from "../../schemas/fastify";
+} from "./handlers.js";
+import { buyItemSchema, gameSchema, solveMessageSchema } from "../../schemas/fastify.js";
 
 export const gameRoutes = (fastify: FastifyInstance): void => {
     fastify.post("/game/start", startGame);

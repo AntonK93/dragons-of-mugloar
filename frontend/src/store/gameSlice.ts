@@ -68,6 +68,12 @@ interface AutoPlayActionLog {
     timestamp: string;
 }
 
+interface GameAction {
+    status: "active" | "gameOver";
+    lastUpdate: number;
+    actionLogs: AutoPlayActionLog[];
+}
+
 interface GameState {
     gameData: GameData | null;
     autoPlay: boolean;
@@ -76,7 +82,7 @@ interface GameState {
     messages: GameMessage[] | null;
     items: ShopItem[] | null;
     shopItems: ShopItem[] | null;
-    autoPlayActionLog: AutoPlayActionLog[] | null;
+    gameAction: GameAction | null;
 }
 
 const initialState: GameState = {
@@ -87,7 +93,7 @@ const initialState: GameState = {
     items: null,
     messages: null,
     shopItems: null,
-    autoPlayActionLog: null,
+    gameAction: null,
 };
 
 const fetchClient = new FetchClientBuilder().setBaseUrl(config.apiBaseUrl).createClient();
@@ -140,7 +146,7 @@ export const getAutoPlayLog = createAsyncThunk<void, void, { state: RootState }>
             throw new Error("Cannot get auto-play log without a game");
         }
         const response = await fetchClient.get(`game/${encodeURIComponent(gameId)}/auto-play`);
-        const data: AutoPlayActionLog[] = await response.json();
+        const data: GameAction = await response.json();
         dispatch(setActionLog(data));
     },
 );
@@ -254,8 +260,8 @@ const gameSlice = createSlice({
         addItem: (state, action: PayloadAction<ShopItem>) => {
             state.items = [...(state.items || []), action.payload];
         },
-        setActionLog: (state, action: PayloadAction<AutoPlayActionLog[]>) => {
-            state.autoPlayActionLog = action.payload;
+        setActionLog: (state, action: PayloadAction<GameAction>) => {
+            state.gameAction = action.payload;
         },
     },
     extraReducers: (builder) => {

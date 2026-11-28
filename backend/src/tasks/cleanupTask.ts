@@ -1,27 +1,19 @@
-import type { AutoPlayGames } from "../cache/autoPlayGames";
-import { logger } from "../tools/logger";
+import type { AutoPlayGamesStore } from "../cache/autoPlayGames.js";
 
 const retentionMs = 24 * 60 * 60 * 1_000; // 24 hours in milliseconds
 
-export const cleanupTask = async (autoPlayGames: AutoPlayGames): Promise<void> => {
+// as we have a front end part that can fetch history of game
+// i added a retention policy to clean up old completed games
+export const cleanupTask = async (autoPlayGamesStore: AutoPlayGamesStore): Promise<void> => {
     const cutoff = Date.now() - retentionMs;
 
-    for (const [gameId, actions] of autoPlayGames.getAll()) {
-        const lastAction = actions[actions.length - 1];
-        if (!lastAction) {
-            autoPlayGames.delete(gameId);
+    for (const [gameId, game] of autoPlayGamesStore.getAll()) {
+        if (game.status === "active") {
             continue;
         }
-        if (lastAction.lives > 0 && lastAction.type !== "gameOver") {
-            continue;
-        }
-        const completedAt = Date.parse(lastAction.timestamp);
-        if (Number.isNaN(completedAt)) {
-            logger.error(`Invalid completion timestamp for game ${gameId}`);
-            continue;
-        }
+        const completedAt = game.lastUpdate;
         if (completedAt <= cutoff) {
-            autoPlayGames.delete(gameId);
+            autoPlayGamesStore.delete(gameId);
         }
     }
 };

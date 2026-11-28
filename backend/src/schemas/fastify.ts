@@ -1,4 +1,4 @@
-import { FastifySchema } from "fastify/types/schema";
+import type { FastifySchema } from "fastify";
 
 const alphanumericParam = { type: "string", pattern: "^[a-zA-Z0-9]+$" };
 const stringParam = { type: "string", pattern: "^[a-zA-Z]+$" };

@@ -1,13 +1,13 @@
-import type { GameApi } from "./services/gameApi";
-import type { TaskScheduler } from "./tasks/scheduler";
-import type { AutoPlayGames } from "./cache/autoPlayGames";
-import type { GameStatistics } from "./services/gameStatistics";
+import type { GameApi } from "./services/gameApi.js";
+import type { TaskScheduler } from "./tasks/scheduler.js";
+import type { AutoPlayGamesStore } from "./cache/autoPlayGames.js";
+import type { GameStatistics } from "./services/gameStatistics.js";
 
 declare module "fastify" {
     interface FastifyInstance {
         gameApi: GameApi;
         scheduler: TaskScheduler;
-        autoPlayGames: AutoPlayGames;
+        autoPlayGamesStore: AutoPlayGamesStore;
         statistics: GameStatistics;
     }
 }

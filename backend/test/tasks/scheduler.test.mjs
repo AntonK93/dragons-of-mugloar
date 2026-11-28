@@ -1,29 +1,28 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import { test } from "node:test";
-
-const require = createRequire(import.meta.url);
-const autoPlayTask = require("../../dist/tasks/autoPlayTask.js");
-const cleanupTask = require("../../dist/tasks/cleanupTask.js");
-const { TaskScheduler } = require("../../dist/tasks/scheduler.js");
-const { logger } = require("../../dist/tools/logger.js");
+import { AutoPlayService } from "../../dist/services/autoPlay.js";
+import { TaskScheduler } from "../../dist/tasks/scheduler.js";
+import { logger } from "../../dist/tools/logger.js";
 
 const flushTasks = () => new Promise((resolve) => globalThis.setImmediate(resolve));
 
 test("TaskScheduler waits for tasks before scheduling the next cycle", async (t) => {
     let finishAutoPlay;
     const autoPlay = t.mock.method(
-        autoPlayTask,
-        "autoPlayTask",
+        AutoPlayService.prototype,
+        "playTurn",
         () =>
             new Promise((resolve) => {
                 finishAutoPlay = resolve;
             }),
     );
-    const cleanup = t.mock.method(cleanupTask, "cleanupTask", async () => {});
     const setTimer = t.mock.method(globalThis, "setTimeout", () => ({}));
     const clearTimer = t.mock.method(globalThis, "clearTimeout", () => {});
-    const games = {};
+    const gameLog = [{ type: "initial" }];
+    const games = {
+        getActiveGames: t.mock.fn(() => [["game1", { actionLogs: gameLog }]]),
+        getAll: t.mock.fn(() => []),
+    };
     const statistics = {};
     const scheduler = new TaskScheduler({}, games, statistics);
 
@@ -32,8 +31,8 @@ test("TaskScheduler waits for tasks before scheduling the next cycle", async (t)
     await flushTasks();
 
     assert.equal(autoPlay.mock.callCount(), 1);
-    assert.deepEqual(autoPlay.mock.calls[0].arguments.slice(1), [games, statistics]);
-    assert.deepEqual(cleanup.mock.calls[0].arguments, [games]);
+    assert.deepEqual(autoPlay.mock.calls[0].arguments, ["game1", gameLog]);
+    assert.equal(games.getAll.mock.callCount(), 1);
     assert.equal(setTimer.mock.callCount(), 0);
 
     finishAutoPlay();
@@ -43,7 +42,7 @@ test("TaskScheduler waits for tasks before scheduling the next cycle", async (t)
 
     setTimer.mock.calls[0].arguments[0]();
     assert.equal(autoPlay.mock.callCount(), 2);
-    assert.equal(cleanup.mock.callCount(), 2);
+    assert.equal(games.getAll.mock.callCount(), 2);
     scheduler.stop();
     finishAutoPlay();
     await flushTasks();
@@ -54,21 +53,23 @@ test("TaskScheduler waits for tasks before scheduling the next cycle", async (t)
 
 test("TaskScheduler logs task failures and continues scheduling", async (t) => {
     const error = new Error("Auto-play failed");
-    t.mock.method(autoPlayTask, "autoPlayTask", async () => {
-        throw error;
-    });
-    const cleanup = t.mock.method(cleanupTask, "cleanupTask", async () => {});
     const logError = t.mock.method(logger, "error", () => {});
     const setTimer = t.mock.method(globalThis, "setTimeout", () => ({}));
     t.mock.method(globalThis, "clearTimeout", () => {});
-    const scheduler = new TaskScheduler({}, {}, {});
+    const games = {
+        getActiveGames: t.mock.fn(() => {
+            throw error;
+        }),
+        getAll: t.mock.fn(() => []),
+    };
+    const scheduler = new TaskScheduler({}, games, {});
 
     scheduler.start();
     await flushTasks();
     scheduler.stop();
 
     assert.deepEqual(logError.mock.calls[0].arguments, [error, "Task auto-play failed:"]);
-    assert.equal(cleanup.mock.callCount(), 1);
+    assert.equal(games.getAll.mock.callCount(), 1);
     assert.equal(setTimer.mock.callCount(), 1);
     assert.equal(setTimer.mock.calls[0].arguments[1], 1000);
 });

@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { GameParams, SolveMessageParams, BuyItemParams } from "../../types/endpoints";
+import { GameParams, SolveMessageParams, BuyItemParams } from "../../types/endpoints.js";
+import { startAutoPlayGame } from "../../services/autoPlay.js";
 
 export const startGame = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const gameData = await request.server.gameApi.startGame();
@@ -55,19 +56,10 @@ export const startAutoPlay = async (
     request: FastifyRequest,
     reply: FastifyReply,
 ): Promise<void> => {
-    const gameData = await request.server.gameApi.startGame();
-    request.server.autoPlayGames.add(gameData.gameId, {
-        type: "initial",
-        result: "Game started",
-        turn: gameData.turn,
-        gold: gameData.gold,
-        stateReputation: 0,
-        peopleReputation: 0,
-        underworldReputation: 0,
-        score: gameData.score,
-        lives: gameData.lives,
-        timestamp: new Date().toISOString(),
-    });
+    const gameData = await startAutoPlayGame(
+        request.server.gameApi,
+        request.server.autoPlayGamesStore,
+    );
     reply.code(200).send(gameData);
 };
 
@@ -76,6 +68,6 @@ export const getAutoPlayStatus = async (
     reply: FastifyReply,
 ): Promise<void> => {
     const { gameId } = request.params;
-    const items = request.server.autoPlayGames.get(gameId);
+    const items = request.server.autoPlayGamesStore.get(gameId);
     reply.code(200).send(items);
 };

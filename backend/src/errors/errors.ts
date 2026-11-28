@@ -1,4 +1,4 @@
-import { ErrorDetail } from "../types/response";
+import { ErrorDetail } from "../types/response.js";
 
 export const appCodes = {
     VALIDATION_ERROR: "VALIDATION_ERROR",

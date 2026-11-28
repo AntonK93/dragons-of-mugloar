@@ -1,7 +1,7 @@
 import { errorCodes, type FastifyError, type FastifyReply, type FastifyRequest } from "fastify";
-import { AppError, InternalServerError, NotFoundError } from "./errors";
-import { ApiErrorResponse } from "../types/response";
-import { logger } from "../tools/logger";
+import { AppError, InternalServerError, NotFoundError } from "./errors.js";
+import { ApiErrorResponse } from "../types/response.js";
+import { logger } from "../tools/logger.js";
 
 const allowedFastifyErrorTypes = [
     errorCodes.FST_ERR_CTP_INVALID_JSON_BODY,

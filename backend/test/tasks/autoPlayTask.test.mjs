@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { GameApiError } from "../../dist/errors/gameApiError.js";
 import { autoPlayTask } from "../../dist/tasks/autoPlayTask.js";
 import { logger } from "../../dist/tools/logger.js";
+import { AutoPlayGamesStore } from "../../dist/cache/autoPlayGames.js";
 
 const initialAction = {
     type: "initial",
@@ -14,7 +15,7 @@ const initialAction = {
     stateReputation: 0,
     peopleReputation: 0,
     underworldReputation: 0,
-    timestamp: "2026-01-01T00:00:00.000Z",
+    timestamp: Date.parse("2026-01-01T00:00:00.000Z"),
 };
 
 test("autoPlayTask runs a turn for each game", async (t) => {
@@ -22,11 +23,12 @@ test("autoPlayTask runs a turn for each game", async (t) => {
     const secondLog = [{ ...initialAction, score: 200 }];
     const autoPlay = { playTurn: t.mock.fn(async () => {}) };
     const games = {
-        getAll: () => [
-            ["game1", firstLog],
-            ["game2", secondLog],
+        getActiveGames: () => [
+            ["game1", { actionLogs: firstLog }],
+            ["game2", { actionLogs: secondLog }],
         ],
         addActionLog: t.mock.fn(),
+        setStatus: t.mock.fn(),
     };
     const statistics = { recordCompletedGame: t.mock.fn() };
 
@@ -43,6 +45,22 @@ test("autoPlayTask runs a turn for each game", async (t) => {
     assert.equal(statistics.recordCompletedGame.mock.callCount(), 0);
 });
 
+test("autoPlayTask skips completed games", async (t) => {
+    t.mock.method(logger, "info", () => {});
+    const games = new AutoPlayGamesStore();
+    games.add("active", initialAction);
+    games.add("completed", initialAction);
+    games.addActionLog("completed", { ...initialAction, type: "gameOver" });
+    const autoPlay = { playTurn: t.mock.fn(async () => {}) };
+
+    await autoPlayTask(autoPlay, games, { recordCompletedGame: t.mock.fn() });
+
+    assert.deepEqual(
+        autoPlay.playTurn.mock.calls.map((call) => call.arguments[0]),
+        ["active"],
+    );
+});
+
 test("autoPlayTask records game over when the API returns 410", async (t) => {
     const error = new GameApiError("Game is over", 410);
     const logError = t.mock.method(logger, "error", () => {});
@@ -53,8 +71,9 @@ test("autoPlayTask records game over when the API returns 410", async (t) => {
         }),
     };
     const games = {
-        getAll: () => [["game1", [initialAction, lastAction]]],
+        getActiveGames: () => [["game1", { actionLogs: [initialAction, lastAction] }]],
         addActionLog: t.mock.fn(),
+        setStatus: t.mock.fn(),
     };
     const statistics = { recordCompletedGame: t.mock.fn() };
 
@@ -65,20 +84,8 @@ test("autoPlayTask records game over when the API returns 410", async (t) => {
         "Failed to play turn for game game1",
     ]);
     assert.deepEqual(statistics.recordCompletedGame.mock.calls[0].arguments, ["game1", 250]);
-    const [gameId, { timestamp, ...action }] = games.addActionLog.mock.calls[0].arguments;
-    assert.equal(gameId, "game1");
-    assert.ok(!Number.isNaN(Date.parse(timestamp)));
-    assert.deepEqual(action, {
-        type: "gameOver",
-        result: "Your adventure has come to an end.",
-        score: 250,
-        turn: 3,
-        gold: 10,
-        lives: 3,
-        stateReputation: 0,
-        peopleReputation: 0,
-        underworldReputation: 0,
-    });
+    assert.deepEqual(games.setStatus.mock.calls[0].arguments, ["game1", "gameOver"]);
+    assert.equal(games.addActionLog.mock.callCount(), 0);
 });
 
 test("autoPlayTask logs other errors without ending the game", async (t) => {
@@ -89,7 +96,11 @@ test("autoPlayTask logs other errors without ending the game", async (t) => {
             throw error;
         }),
     };
-    const games = { getAll: () => [["game1", [initialAction]]], addActionLog: t.mock.fn() };
+    const games = {
+        getActiveGames: () => [["game1", { actionLogs: [initialAction] }]],
+        addActionLog: t.mock.fn(),
+        setStatus: t.mock.fn(),
+    };
     const statistics = { recordCompletedGame: t.mock.fn() };
 
     await autoPlayTask(autoPlay, games, statistics);
@@ -99,6 +110,7 @@ test("autoPlayTask logs other errors without ending the game", async (t) => {
         "Failed to play turn for game game1",
     ]);
     assert.equal(games.addActionLog.mock.callCount(), 0);
+    assert.equal(games.setStatus.mock.callCount(), 0);
     assert.equal(statistics.recordCompletedGame.mock.callCount(), 0);
 });
 
@@ -119,11 +131,11 @@ test("autoPlayTask waits for other games when recording statistics fails", async
         }),
     };
     const games = {
-        getAll: () => [
-            ["slow", [initialAction]],
-            ["ended", [initialAction]],
+        getActiveGames: () => [
+            ["slow", { actionLogs: [initialAction] }],
+            ["ended", { actionLogs: [initialAction] }],
         ],
-        addActionLog: t.mock.fn(),
+        setStatus: t.mock.fn(),
     };
     const statistics = {
         recordCompletedGame: t.mock.fn(() => {

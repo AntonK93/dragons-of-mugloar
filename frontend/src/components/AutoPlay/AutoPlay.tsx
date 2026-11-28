@@ -11,9 +11,9 @@ function AutoPlay() {
     const dispatch = useAppDispatch();
     const gameData = useAppSelector((state) => state.game.gameData);
     const gameId = gameData?.gameId;
-    const autoPlayActionLog = useAppSelector((state) => state.game.autoPlayActionLog);
-    const lastAction = autoPlayActionLog?.at(-1);
-    const isGameOver = autoPlayActionLog?.some((action) => action.type === "gameOver") ?? false;
+    const gameAction = useAppSelector((state) => state.game.gameAction);
+    const lastAction = gameAction?.actionLogs?.at(-1);
+    const isGameOver = gameAction?.status === "gameOver";
 
     useEffect(() => {
         if (!gameId || isGameOver) {
@@ -86,8 +86,8 @@ function AutoPlay() {
             <section className={`${shared.panel} ${styles.logPanel}`} aria-labelledby="log-title">
                 <h2 id="log-title">Auto-play log</h2>
                 <ul className={styles.autoPlayLog} aria-label="Auto-play actions">
-                    {autoPlayActionLog?.length ? (
-                        autoPlayActionLog
+                    {gameAction?.actionLogs?.length ? (
+                        gameAction?.actionLogs
                             .map((action, index) => (
                                 <li
                                     className={styles.logEntry}

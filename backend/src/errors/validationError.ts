@@ -1,6 +1,6 @@
 import type { FastifyError } from "fastify";
-import { AppError, appCodes } from "./errors";
-import type { ErrorDetail } from "../types/response";
+import { AppError, appCodes } from "./errors.js";
+import type { ErrorDetail } from "../types/response.js";
 
 type FastifyValidationErrors = NonNullable<FastifyError["validation"]>;
 

@@ -1,8 +1,9 @@
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { ZodError } from "zod";
-import { InternalServerError } from "../errors/errors";
-import { statisticsSchema } from "../schemas/gameStatistics";
-import { percentage } from "../helpers/math";
+import { InternalServerError } from "../errors/errors.js";
+import { statisticsSchema } from "../schemas/gameStatistics.js";
+import { percentage } from "../helpers/math.js";
+import { config } from "../config.js";
 
 export class GameStatistics {
     private readonly filePath: string;
@@ -73,3 +74,7 @@ export class GameStatistics {
         renameSync(temporaryFile, this.filePath);
     }
 }
+
+export const createStatistics = (): GameStatistics => {
+    return new GameStatistics(config.statisticsPath);
+};

@@ -14,7 +14,7 @@ This application solves two challenges from [Dragons of Mugloar](https://dragons
 - Implement state management.
 - Develop a program that reaches 1,000+ points in the game.
 - Ensure proper error handling and input validation.
-- Write unit tests to verify the code, including backend business logic (48 backend tests added).
+- Write unit tests to verify the code, including backend business logic.
 
 ## Features
 
@@ -37,11 +37,12 @@ This application solves two challenges from [Dragons of Mugloar](https://dragons
   - Records completed auto-play game statistics by score range in `game-statistics.json`.
   - Integrates with the Dragons of Mugloar API for game actions.
   - Schedules auto-play turns and removes completed games from the cache after 24 hours.
+  - Provides a load test that runs multiple auto-play games concurrently.
 
 ## Used Technologies
 
 - **Frontend:** React, Redux Toolkit, React Redux, React Toastify, TypeScript, CSS Modules, Vite.
-- **Backend:** Node.js, TypeScript, Fastify, Zod, Pino.
+- **Backend:** Node.js, TypeScript, Fastify, @fastify/cors, Zod, Pino, p-queue.
 - **Testing and tooling:** Node.js test runner, ESLint, Prettier, npm.
 
 ## Getting Started
@@ -96,7 +97,7 @@ The backend exposes these endpoints:
 | GET | `/game/:gameId/shop` | List shop items. |
 | GET | `/game/:gameId/shop/buy/:itemId` | Buy an item. |
 | POST | `/game/auto-play` | Start an automated game. |
-| GET | `/game/:gameId/auto-play` | Get the auto-play action log. |
+| GET | `/game/:gameId/auto-play` | Get the auto-play status, last update, and action log. |
 
 ## Statistics
 
@@ -129,10 +130,33 @@ score in the statistics.
 
 ## Load Testing
 
-To load-test auto-play, use Postman to send multiple requests to
-`POST http://localhost:3000/game/auto-play`.
-Each request starts a new game and sends traffic to the external Dragons of Mugloar API,
-so keep the test within its permitted usage limits.
+To start 15 games and run auto-play, build the backend and run:
+
+```sh
+cd backend
+npm run build
+npm run load-test -- --gameCount 15
+```
+
+`--gameCount` must be a positive safe integer. Game starts are initiated concurrently and their
+requests share the client's queue. If any start fails, the test waits for all attempts, logs the
+failures, and stops without playing the games.
+
+After all games start, each cycle attempts a turn for every active game in parallel and waits for
+all attempts before starting the next cycle. HTTP 410 marks a game as over and records its last
+known score in the repository-root `game-statistics.json` file; completed games are skipped in later
+cycles. Other turn errors are logged and the game remains active. The test stops when no games
+remain active, so persistent errors can prevent it from finishing.
+
+The client queues requests and allows up to `gameApi.maxConcurrentRequests` simultaneous fetches
+(currently 5), configured in [`backend/src/config.ts`](./backend/src/config.ts). A queue slot is
+released when `fetch` resolves, before the response body is necessarily read. The configured
+5-second request timeout starts when the fetch leaves the queue, not while it waits. There is no
+separate limit on request starts per second.
+
+The test and backend run in separate processes, so they have separate caches and queues. Avoid
+running them together: their combined requests can overload the API, and concurrent statistics
+writes can conflict.
 
 ## Limitations
 

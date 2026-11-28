@@ -1,5 +1,5 @@
-import { ErrorDetail } from "../types/response";
-import { AppError, appCodes } from "./errors";
+import { ErrorDetail } from "../types/response.js";
+import { AppError, appCodes } from "./errors.js";
 
 export const GAME_OVER_STATUS = 410;
 const gameApiCodeMapping = new Map<number, string>([[GAME_OVER_STATUS, appCodes.GAME_OVER]]);

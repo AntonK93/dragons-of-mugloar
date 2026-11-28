@@ -1,7 +1,13 @@
+import { fileURLToPath } from "node:url";
+
 export const config = {
-    gameApiUrl: "https://dragonsofmugloar.com/api/v2/",
     frontendOrigins: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    statisticsPath: "../../game-statistics.json",
+    statisticsPath: fileURLToPath(new URL("../../game-statistics.json", import.meta.url)),
+    gameApi: {
+        baseUrl: "https://dragonsofmugloar.com/api/v2/",
+        timeout: 5000,
+        maxConcurrentRequests: 5,
+    },
 };
 
 export const autoPlayConfig = {

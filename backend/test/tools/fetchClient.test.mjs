@@ -115,6 +115,7 @@ test("FetchClientBuilder propagates network errors and timeouts", async (t) => {
     const fetch = t.mock.method(globalThis, "fetch", async () => {
         throw networkError;
     });
+
     const client = new FetchClientBuilder()
         .setBaseUrl("https://example.test/")
         .setTimeout(10)
@@ -134,5 +135,63 @@ test("FetchClientBuilder propagates network errors and timeouts", async (t) => {
         await assert.rejects(client.get("items"), { name: "TimeoutError" });
     } finally {
         globalThis.clearTimeout(keepAlive);
+    }
+});
+
+test("FetchClientBuilder limits concurrent requests and continues after errors", async (t) => {
+    const error = new Error("Network unavailable");
+    const firstResponse = Promise.withResolvers();
+    const secondResponse = Promise.withResolvers();
+    let calls = 0;
+    const fetch = t.mock.method(globalThis, "fetch", () => {
+        calls++;
+        if (calls === 1) {
+            return firstResponse.promise;
+        }
+        if (calls === 2) {
+            return secondResponse.promise;
+        }
+        return Promise.resolve(new globalThis.Response("ok"));
+    });
+    const timeout = t.mock.method(
+        globalThis.AbortSignal,
+        "timeout",
+        () => new globalThis.AbortController().signal,
+    );
+    const builder = new FetchClientBuilder()
+        .setBaseUrl("https://example.test/")
+        .setMaxConcurrentRequests(2);
+    const client = builder.createClient();
+    builder.setMaxConcurrentRequests(1);
+    const flush = () => new Promise((resolve) => globalThis.setImmediate(resolve));
+    const first = client.get("first");
+    const second = client.get("second");
+    const third = client.get("third");
+    const firstRejection = assert.rejects(first, (reason) => reason === error);
+
+    try {
+        await flush();
+        assert.equal(fetch.mock.callCount(), 2);
+        assert.equal(timeout.mock.callCount(), 2);
+        firstResponse.reject(error);
+        await firstRejection;
+        await third;
+        assert.equal(fetch.mock.callCount(), 3);
+        assert.equal(timeout.mock.callCount(), 3);
+    } finally {
+        firstResponse.reject(error);
+        secondResponse.resolve(new globalThis.Response("ok"));
+        await firstRejection;
+    }
+    await second;
+});
+
+test("FetchClientBuilder rejects invalid concurrency limits", () => {
+    const builder = new FetchClientBuilder();
+    for (const limit of [0, -1, 1.5, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+        assert.throws(() => builder.setMaxConcurrentRequests(limit), {
+            name: "RangeError",
+            message: "Maximum concurrent requests must be a positive safe integer",
+        });
     }
 });

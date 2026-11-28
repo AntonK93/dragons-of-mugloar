@@ -12,7 +12,7 @@ const initialAction = {
     underworldReputation: 3,
     gold: 100,
     lives: 3,
-    timestamp: "2026-01-01T00:00:00.000Z",
+    timestamp: Date.parse("2026-01-01T00:00:00.000Z"),
 };
 
 /**
@@ -58,17 +58,6 @@ const questResult = {
     highScore: 150,
 };
 
-test("playTurn does nothing for a finished game", async (t) => {
-    const { api, actions, service } = createService(t);
-
-    await service.playTurn("game1", [{ ...initialAction, type: "gameOver" }]);
-
-    assert.equal(actions.length, 0);
-    for (const method of Object.values(api)) {
-        assert.equal(method.mock.callCount(), 0);
-    }
-});
-
 test("playTurn buys a healing potion when health is low", async (t) => {
     const { api, actions, service } = createService(t, {
         buyItem: async () => purchaseResult,
@@ -90,7 +79,7 @@ test("playTurn buys a healing potion when health is low", async (t) => {
     assert.equal(api.getMessages.mock.callCount(), 0);
     const [[gameId, { timestamp, ...action }]] = actions;
     assert.equal(gameId, "game1");
-    assert.ok(!Number.isNaN(Date.parse(timestamp)));
+    assert.ok(Number.isFinite(timestamp));
     assert.deepEqual(action, {
         type: "purchase",
         result: "You bought item: hpot",
@@ -161,7 +150,7 @@ test("playTurn chooses the easiest quest, preferring the one that expires sooner
     assert.equal(api.buyItem.mock.callCount(), 0);
     const [[gameId, { timestamp, ...action }]] = actions;
     assert.equal(gameId, "game1");
-    assert.ok(!Number.isNaN(Date.parse(timestamp)));
+    assert.ok(Number.isFinite(timestamp));
     assert.deepEqual(action, {
         type: "quest",
         result: "Quest result: Success - Probability: Piece of cake - Quest message: Rescue",

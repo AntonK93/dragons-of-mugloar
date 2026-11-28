@@ -8,5 +8,5 @@ export interface AutoPlayActionLog {
     underworldReputation: number;
     gold: number;
     lives: number;
-    timestamp: string;
+    timestamp: number;
 }

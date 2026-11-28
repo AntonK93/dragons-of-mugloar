@@ -2,15 +2,48 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { InternalServerError } from "../../dist/errors/errors.js";
-import { GameStatistics } from "../../dist/services/gameStatistics.js";
+import { createStatistics, GameStatistics } from "../../dist/services/gameStatistics.js";
+import { config } from "../../dist/config.js";
 
 const createTemporaryDirectory = (t) => {
     const directory = mkdtempSync(join(tmpdir(), "game-statistics-test-"));
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     return directory;
 };
+
+test("statistics path points to the repository root regardless of the working directory", (t) => {
+    const configUrl = new globalThis.URL("../../dist/config.js", import.meta.url).href;
+    const expected = fileURLToPath(
+        new globalThis.URL("../../../game-statistics.json", import.meta.url),
+    );
+    const actual = execFileSync(
+        globalThis.process.execPath,
+        [
+            "--input-type=module",
+            "-e",
+            "process.stdout.write((await import(process.argv[1])).config.statisticsPath)",
+            configUrl,
+        ],
+        { cwd: createTemporaryDirectory(t), encoding: "utf8" },
+    );
+    assert.equal(actual, expected);
+});
+
+test("createStatistics uses the configured path", (t) => {
+    const file = join(createTemporaryDirectory(t), "statistics.json");
+    const previous = config.statisticsPath;
+    config.statisticsPath = file;
+    try {
+        createStatistics().recordCompletedGame("game1", 100);
+        assert.equal(JSON.parse(readFileSync(file, "utf8")).completedGames, 1);
+    } finally {
+        config.statisticsPath = previous;
+    }
+});
 
 test("recordCompletedGame creates and updates statistics across score boundaries", (t) => {
     const file = join(createTemporaryDirectory(t), "statistics.json");

@@ -6,7 +6,7 @@ import {
     reputationResponseSchema,
     solveMessageResponseSchema,
     startGameResponseSchema,
-} from "../schemas/gameApi";
+} from "../schemas/gameApi.js";
 
 export type StartGameResponse = z.infer<typeof startGameResponseSchema>;
 export type InvestigateReputationResponse = z.infer<typeof reputationResponseSchema>;
